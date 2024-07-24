@@ -1,11 +1,25 @@
 # API-Obfuscator
-This drop-in header will obfuscate function calls to make them difficult to resolve and incredibly annoying to label
+API Obfuscator is a technique that "attacks" debugging tools, such as Ghidra and IDA. It makes the inital RE more difficult, but more importantly, once the analyst has "figured it out", API Obfuscator simply makes the disassembly a real pain to label.
+Within its implementation, I make use of some PRNG techniques to also make dynamic analysis a tad more annoying.
+This technique falls underneath the umbrellas of binary obfuscation, anti-debugging, and a touch of anti-disassembly.
+
+# How-To
+Its a drop-in header, so all you need is:
+
+```
+#include "apiresolver.h"
+```
+ Once included, it will obfuscate function calls to make them difficult to resolve and incredibly annoying to label.
+ Of note: It uses `#define <API>` to find/replace functions. This is important, for example, with calls like `LoadLibrary` that are already #defined to other calls, like `LoadLibraryA` or `LoadLibraryW`.
+ This use of define makes it dead-simple to use though, and you can even insert it into library code and I would expect it to work.
+
+ It's not limited to Windows API either. You can typedef your own functions and just have all functions go through `ApiResolver` if you wish.
 
 # Background
 Part of my professional job is performing malware RE. Usually malware and their associated crypters/packers/etc will utilize anti-debugging techniques, but ultimately through a combination of static and dynamic analysis you can "figure it out".
 This repo is a technique I came up with as a "Man it would be really annoying if they did this..."
 
-API Obfuscator is effectively a technique that "attacks" the debugging tools, such as Ghidra and IDA. It does make the inital RE more difficult, but more importantly, once the analyst has "figured it out", API Obfuscator simply makes the disassembly a pain in rear to label.
+
 
 # Screenshots
 
