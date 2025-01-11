@@ -20,27 +20,24 @@ typedef LPVOID  (WINAPI * VIRTUALALLOC)( LPVOID, SIZE_T, DWORD, DWORD );
 typedef BOOL  (WINAPI * VIRTUALPROTECT)( LPVOID, SIZE_T, DWORD, PDWORD );
 typedef HMODULE (WINAPI * LOADLIBRARYA)( LPCSTR );
 typedef FARPROC (WINAPI * GETPROCADDRESS)( HMODULE, LPCSTR );
-
-#pragma pack(push, 1)
-struct {
-    UINT sVirtualProtect[APILENGTH];
-    UINT sVirtualAlloc[APILENGTH];
-    UINT sLoadLibraryA[APILENGTH];
-    UINT sGetProcAddress[APILENGTH];
-} apiresolverstruct;
-#pragma pack(pop)
+typedef BOOL (WINAPI * LOOKUPPRIVILEGEVALUEA)( LPCSTR, LPCSTR, PLUID );
 
 enum ApiOffsetOrder {
     ApiVirtualProtect,
     ApiVirtualAlloc,
     ApiLoadLibraryA,
     ApiGetProcAddress,
+    ApiLookupPrivilegeValueA,
+    ApiEnumCount
 };
+
+UINT apiresolverstruct[APILENGTH*ApiEnumCount];
 
 #define VirtualProtect ((VIRTUALPROTECT)ApiResolver(((UINT*)&apiresolverstruct)[APILENGTH*ApiVirtualProtect + (ApiResolverCounter++%APILENGTH)]))
 #define VirtualAlloc     ((VIRTUALALLOC)ApiResolver(((UINT*)&apiresolverstruct)[APILENGTH*ApiVirtualAlloc   + (ApiResolverCounter++%APILENGTH)]))
 #define LoadLibraryA     ((LOADLIBRARYA)ApiResolver(((UINT*)&apiresolverstruct)[APILENGTH*ApiLoadLibraryA   + (ApiResolverCounter++%APILENGTH)]))
 #define GetProcAddress ((GETPROCADDRESS)ApiResolver(((UINT*)&apiresolverstruct)[APILENGTH*ApiGetProcAddress + (ApiResolverCounter++%APILENGTH)]))
+#define LookupPrivilegeValueA ((LOOKUPPRIVILEGEVALUEA)ApiResolver(((UINT*)&apiresolverstruct)[APILENGTH*ApiLookupPrivilegeValueA + (ApiResolverCounter++%APILENGTH)]))
 
 // Function definitions if using as single header
 void InitApiResolver(void)
@@ -54,7 +51,7 @@ void InitApiResolver(void)
     
     for (size_t i = 0; i < real_size; i++)
     {
-        // printf("addr: %p\n", &((UINT*)&apiresolverstruct)[(i+delta)%real_size]);
+        // printf("[%zu] addr: %p = %u (offset)\n", i, &((UINT*)&apiresolverstruct)[(i+delta)%real_size], offset);
         ((UINT*)&apiresolverstruct)[(i+delta)%real_size] = offset;
         offset += rand()%512;
     }
