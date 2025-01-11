@@ -63,7 +63,7 @@ void InitApiResolver(void)
     {
         // printf("[%zu + %u] addr: %p = %u (offset)\n", i, delta, &((UINT*)&apiresolverstruct)[(i+delta)%real_size], offset);
         ((UINT*)&apiresolverstruct)[(i+delta)%real_size] = offset;
-        offset += rand()%512;
+        offset += 1 + rand()%512;
     }
 }
 
