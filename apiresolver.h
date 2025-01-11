@@ -11,9 +11,9 @@ void  InitApiResolver(void);
 PVOID ApiResolver(unsigned int API);
 
 // Some global values
-#define APILENGTH 4
-unsigned int ApiResolverCounter = 0;
-unsigned int ApiResolverSeed = 0;
+#define APILENGTH 4                     // How many random values point to the real function. See apiresolverstruct for how its used.
+unsigned int ApiResolverCounter = 0;    // This is used to not get array accesses optimized away into a single value.
+unsigned int ApiResolverSeed = 0;       // We are using rand() deterministically, so save the seed(). Not for crypto, its fine to use time()
 PVOID ApiResolverAPIs[] = { &VirtualProtect, &VirtualAlloc, &LoadLibraryA, &GetProcAddress };
 
 typedef LPVOID  (WINAPI * VIRTUALALLOC)( LPVOID, SIZE_T, DWORD, DWORD );
@@ -47,15 +47,16 @@ void InitApiResolver(void)
 {
     ApiResolverSeed = time(NULL);
     srand(ApiResolverSeed);
-    unsigned int delta = rand()%(sizeof(apiresolverstruct)/sizeof(UINT));
-    unsigned int offset = 0;
-    size_t real_size = sizeof(apiresolverstruct)/sizeof(UINT);
+
+    unsigned int delta  = rand()%(sizeof(apiresolverstruct)/sizeof(UINT));
+    size_t real_size    = sizeof(apiresolverstruct)/sizeof(UINT);
+    unsigned int offset = rand()%512;
+    
     for (size_t i = 0; i < real_size; i++)
     {
         // printf("addr: %p\n", &((UINT*)&apiresolverstruct)[(i+delta)%real_size]);
-        unsigned int bump = rand()%512;
-        ((UINT*)&apiresolverstruct)[(i+delta)%real_size] = offset + bump;
-        offset += bump + rand()%512;
+        ((UINT*)&apiresolverstruct)[(i+delta)%real_size] = offset;
+        offset += rand()%512;
     }
 }
 
@@ -76,4 +77,5 @@ PVOID ApiResolver(unsigned int API)
     }
     return NULL;
 }
+
 #endif
