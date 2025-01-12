@@ -18,6 +18,7 @@ PVOID ApiResolver(unsigned int API);
 unsigned int ApiResolverCounter = 0;    // This is used to not get array accesses optimized away into a single value.
 unsigned int ApiResolverSeed = 0;       // We are using rand() deterministically, so save the seed(). Not for crypto, its fine to use time()
 
+// typedefs 9711
 typedef LPVOID  (WINAPI * VirtualAlloc_T)( LPVOID, SIZE_T, DWORD, DWORD );
 typedef BOOL  (WINAPI * VirtualProtect_T)( LPVOID, SIZE_T, DWORD, PDWORD );
 typedef HMODULE (WINAPI * LoadLibraryA_T)( LPCSTR );
@@ -25,7 +26,13 @@ typedef FARPROC (WINAPI * GetProcAddress_T)( HMODULE, LPCSTR );
 typedef BOOL (WINAPI * LookupPrivilegeValueA_T)( LPCSTR, LPCSTR, PLUID );
 
 // These must be in the same order. The enum is just to give useful names for the API_DEFINE macro
-PVOID ApiResolverAPIs[] = { &VirtualProtect, &VirtualAlloc, &LoadLibraryA, &GetProcAddress, &LookupPrivilegeValueA };
+PVOID ApiResolverAPIs[] = {
+    &VirtualProtect,
+    &VirtualAlloc,
+    &LoadLibraryA,
+    &GetProcAddress,
+    &LookupPrivilegeValueA
+};
 enum ApiOffsetOrder {
     ApiVirtualProtect,
     ApiVirtualAlloc,
@@ -40,6 +47,7 @@ UINT apiresolverstruct[APILENGTH*ApiEnumCount];
 // Name##_T -> VirtualProtect_T ; Api##Name -> ApiVirtualProtect
 #define API_DEFINE(Name) ((Name##_T)ApiResolver(((UINT*)&apiresolverstruct)[APILENGTH*Api##Name + (ApiResolverCounter++ % APILENGTH)]))
 
+// defines e56b
 #define VirtualProtect API_DEFINE(VirtualProtect)
 #define VirtualAlloc API_DEFINE(VirtualAlloc)
 #define LoadLibraryA API_DEFINE(LoadLibraryA)

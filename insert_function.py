@@ -14,9 +14,9 @@ def insert_line(data, search, insert):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Inserts a function in apiresolver.h')
 
-    parser.add_argument('-n', '--name',   type=str, help='API name, ie VirtualAlloc. IMPORTANT! Casing must be how the function is called!')
-    parser.add_argument('-r', '--ret', type=str, help='Return type, ie LPVOID')
-    parser.add_argument('-a', '--args',   type=str, help='argv for typedef, ie "LPVOID, SIZE_T, DWORD"')
+    parser.add_argument('-n', '--name', type=str, required=True, help='API name, ie VirtualAlloc. IMPORTANT! Casing must be how the function is called!')
+    parser.add_argument('-r', '--ret',  type=str, required=True, help='Return type, ie LPVOID')
+    parser.add_argument('-a', '--args', type=str, required=True, help='argv for typedef, ie "LPVOID, SIZE_T, DWORD"')
 
     args = parser.parse_args()
 
