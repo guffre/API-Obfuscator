@@ -1,5 +1,4 @@
 import argparse
-import re
 
 typedefs = "// typedefs 9711\n"
 defines = "// defines e56b\n"
@@ -21,24 +20,29 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     with open("apiresolver.h", "r") as f:
-        data = f.readlines()
+        header_data = f.readlines()
     
-    sanity_check = len(''.join(data))
+    with open("apiresolver.c", "r") as f:
+        c_data = f.readlines()
+    
+    if f"Api{args.name}," in ''.join(header_data):
+        print(f"Error: {args.name} is already found in header file.")
+        exit()
 
     insert = f'typedef {args.ret.upper()} (WINAPI * {args.name}_T)( {args.args.upper()} );\n'
-    data = insert_line(data, typedefs, insert)
+    header_data = insert_line(header_data, typedefs, insert)
 
     insert = f'#define {args.name} API_DEFINE({args.name})\n'
-    data = insert_line(data, defines, insert)
+    header_data = insert_line(header_data, defines, insert)
 
     insert = f'    &{args.name},\n'
-    data = insert_line(data, api_array, insert)
+    c_data = insert_line(c_data, api_array, insert)
 
     insert = f'    Api{args.name},\n'
-    data = insert_line(data, api_enum, insert)
+    header_data = insert_line(header_data, api_enum, insert)
 
-    if len(''.join(data)) < sanity_check:
-        print("Something went wrong!")
-    else:
-        with open("apiresolver.h", 'w') as file:
-            file.writelines(data)
+    with open("apiresolver.h", 'w') as file:
+        file.writelines(header_data)
+    
+    with open("apiresolver.c", 'w') as file:
+        file.writelines(c_data)
