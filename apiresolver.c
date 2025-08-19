@@ -42,11 +42,13 @@ PVOID ApiResolverAPIs[] = {
 // If its not, the #defines will mess up
 #include "apiresolver.h"
 
+unsigned int ApiResolverCounter = 0;    // This is used to not get array accesses optimized away into a single value.
+unsigned int ApiResolverSeed = 0;       // We are using rand() deterministically, so save the seed(). Not for crypto, its fine to use time()
+
 // Initializes the apiresolverstruct. This becomes a map of value ->      offset       -> function address.
 //                                                           API  -> apiresolverstruct ->  ApiResolverAPIs
 void InitApiResolver(void)
 {
-
     ApiResolverSeed = time(NULL);
     srand(ApiResolverSeed);
 

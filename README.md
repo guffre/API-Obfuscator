@@ -29,6 +29,9 @@ Its a drop-in header, but it does need to be initialized.
 // Somewhere:
 InitApiResolver();
 ```
+
+You only need to include the header compilation units that you want to have obfuscated. I throw the `InitApiResolver()` in `main()`, but you could get fancy with it and put it elsewhere.
+
 Once included, it will obfuscate function calls to make them difficult to resolve and incredibly annoying to label.
 Of note: It uses `#define <API>` to find/replace functions. This is important, for example, with calls like `LoadLibrary` that are already #defined to other calls, like `LoadLibraryA` or `LoadLibraryW`.
 This use of define makes it dead-simple to use though, and you can even insert it into library code and I would expect it to work.
@@ -36,6 +39,8 @@ This use of define makes it dead-simple to use though, and you can even insert i
 It's not limited to Windows API either. You can typedef your own functions and just have all functions go through `ApiResolver` if you wish.
 
 # I want to add new functions!
+Just use the `insert_function.py` helper. If you want to do it manually:
+
 1. Add a typedef:  
     ```
    typedef LPVOID  (WINAPI * VirtualAlloc_T)( LPVOID, SIZE_T, DWORD, DWORD );
