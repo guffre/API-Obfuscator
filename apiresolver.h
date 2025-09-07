@@ -6,8 +6,9 @@
 #include <stdio.h>
 #include <TlHelp32.h>
 
-// For LookupPrivilegeValueA
+// For external symbols
 #pragma comment(lib, "advapi32.lib")
+#pragma comment(lib, "user32.lib")
 
 // Function declarations
 void  InitApiResolver(void);
@@ -17,8 +18,11 @@ PVOID ApiResolver(unsigned int API);
 #define APILENGTH 4                        // How many random values point to the real function. Really this is just "jitter" to add math
 extern unsigned int ApiResolverCounter;    // This is used to not get array accesses optimized away into a single value.
 extern unsigned int ApiResolverSeed;       // We are using rand() deterministically, so save the seed(). Not for crypto, its fine to use time()
+#ifdef NOAPI
+extern UINT64 ApiResolverAPIs[];
+#else
 extern PVOID ApiResolverAPIs[];
-
+#endif
 // typedefs 9711
 typedef ATOM (WINAPI * RegisterClassExA_T)( CONST WNDCLASSEXA* );
 typedef HWND (WINAPI * CreateWindowExA_T)( DWORD, LPCSTR, LPCSTR, DWORD, INT, INT, INT, INT, HWND, HMENU, HINSTANCE, LPVOID );

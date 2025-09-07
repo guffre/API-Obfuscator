@@ -1,19 +1,14 @@
-// cl.exe /O2 sample.c
-#include "apiresolver.h"
+// cl.exe /O2 sample.c apiresolver.c
+// cl.exe /DNOAPI /O2 sample.c apiresolver.c /link mglib.lib
 
-#ifndef _APIRESOLVER_H
-#include <Windows.h>
-#include <stdio.h>
-#endif
+#include "apiresolver.h"
 
 typedef int (*printf_t)(const char*, ...);
 
 // Sample Usage:
 int main(void)
 {
-    #ifdef _APIRESOLVER_H
     InitApiResolver();
-    #endif
 
     HANDLE advapi = LoadLibraryA("advapi32.dll");
     advapi = LoadLibraryA("advapi32.dll");
